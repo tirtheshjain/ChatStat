@@ -1,5 +1,5 @@
 import streamlit as st
-import streamlit_authenticator as stauth
+# import streamlit_authenticator as stauth
 import base64  # Standard Python Module
 from io import StringIO, BytesIO  # Standard Python Module
 #import streamlit_lottie as st_lottie
@@ -9,6 +9,7 @@ import time as t
 import numpy as np
 import pandas as pd
 import dataPreprocessor
+from io import StringIO
 
 st.set_page_config(page_title="ChatStat ",page_icon=":chart:",layout="wide")
 st.title(":chart: ChatStat | The WhatsApp Chat Analyzer")
@@ -24,9 +25,9 @@ st.markdown("##")
 
 
 uploaded_file = st.file_uploader("Upload an exported '.txt' file from your WhatsApp group:")
+
 if uploaded_file:
-    data = uploaded_file.getvalue().decode('utf-8')
-    df = dataPreprocessor.preprocess(data)
+    df = dataPreprocessor.preprocess(uploaded_file)
     st.dataframe(df)
 
 
