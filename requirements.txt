@@ -6,3 +6,7 @@ json
 time
 numpy
 pandas
+emojis
+urlextract
+matplotlib
+wordcloud
