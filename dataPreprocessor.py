@@ -29,7 +29,6 @@ def preprocess(file):
     #     print(df.tail())
 
     # Save it!
-    df.to_csv(r'converted_messages.csv', index=False)
     df = df[df.Message != '']
     df = df[df.Message != '<Media omitted>']
 
