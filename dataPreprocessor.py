@@ -1,58 +1,35 @@
-import re
 import pandas as pd
 
-def preprocess(data):
-    pattern = '\d{1,2}/\d{1,2}/\d{1,2},\s\d{1,2}:\d{2}\s[APM]{2}\s-\s'
+def preprocess(file):
+    # parse text and create list of lists structure
+    # remove first whatsapp info message
+    # dataset = data[1:]
+    cleaned_data = []
+    for line in file:
+        # grab the info and cut it out
+        line = str(line.decode('utf-8'))
+        date = line.split(",")[0]
+        line2 = line[len(date):]
+        time = line2.split("-")[0][2:]
+        line3 = line2[len(time):]
+        name = line3.split(":")[0][4:]
+        line4 = line3[len(name):]
+        message = line4[6:-1] # strip newline charactor
 
-    user_messages = re.split(pattern, data)[1:]
-    dates_list = re.findall(pattern, data)
+        #print(date, time, name, message)
+        cleaned_data.append([date, time, name, message])
 
-    modified_dates = []
+    
+    # Create the DataFrame 
+    df = pd.DataFrame(cleaned_data, columns = ['Date', 'Time', 'Name', 'Message']) 
 
-    for date_string in dates_list:
-        # Split the string by comma and space
-        parts = date_string.split(", ")
-        
-        if len(parts) == 2:
-            date_part, time_part = parts
-            time_part = time_part.rstrip(" - ")  # Remove the trailing space and hyphen
-            modified_date = f"{date_part} {time_part}"
-            modified_dates.append(modified_date)
+    # # check formatting 
+    # if 0:
+    #     print(df.head())
+    #     print(df.tail())
 
-    datetime_list = pd.to_datetime(modified_dates)
-
-    users = []
-    messages = []
-    for message in user_messages:
-        match = re.match('([^:]+):\s(.+)', message)
-        if match:
-            username, message_content = match.groups()
-            users.append(username)
-            messages.append(message_content)
-        else:
-            users.append('group_notification')
-            messages.append(message)
-
-    df = pd.DataFrame({'user': users, 'datetime': datetime_list})
-
-    df['only_date'] = df['datetime'].dt.date
-    df['year'] = df['datetime'].dt.year
-    df['month_num'] = df['datetime'].dt.month
-    df['month'] = df['datetime'].dt.month_name()
-    df['day'] = df['datetime'].dt.day
-    df['day_name'] = df['datetime'].dt.day_name()
-    df['hour'] = df['datetime'].dt.hour
-    df['minute'] = df['datetime'].dt.minute
-
-    period = []
-    for hour in df[['day_name', 'hour']]['hour']:
-        if hour == 23:
-            period.append(str(hour) + "-" + str('00'))
-        elif hour == 0:
-            period.append(str('00') + "-" + str(hour + 1))
-        else:
-            period.append(str(hour) + "-" + str(hour + 1))
-
-    df['period'] = period
+    # Save it!
+    df = df[df.Message != '']
+    df = df[df.Message != '<Media omitted>']
 
     return df
