@@ -20,7 +20,7 @@ st.sidebar.title("Welcome To ChatStat !")
 st.sidebar.subheader("Filters")
 analysis_filter = st.sidebar.multiselect(
     "Analysis",
-    options=["Top Statistics", "Monthly Timeline","Daliy Timeline","Activity Map","Most Active Users","Word Cloud","Most Common words","Emoji Analysis","Sentiment Analysis"],
+    options=["Top Statistics","Daliy Timeline","Activity Map","Most Active Users","Word Cloud","Most Common words","Emoji Analysis","Sentiment Analysis"],
     default="Top Statistics"
 )
 
@@ -53,7 +53,7 @@ if uploaded_file:
                 st.header("Total Words")
                 st.title(words_count)
             with col3:
-                st.header("Average Message length (in words)")
+                st.header("Average Words per Message")
                 st.title(math.ceil(words_count/message_count))
             with col4:
                 st.header("Media Shared")
@@ -66,6 +66,80 @@ if uploaded_file:
                 st.title(emojis_count)
             st.markdown("##")
 
+        # Most Active Users Area
+        if "Most Active Users" in analysis_filter:
+            # finding the busiest users in the group(Group level)
+            if selected_user == 'All':
+                st.title('Most Active Users')
+                top_user_sr, top_users_contribution_df = utils.most_active_users(df)
+                col1, col2 = st.columns(2)
+                with col1:
+                    fig, ax = plt.subplots()
+                    ax.pie(top_user_sr.values,labels=top_user_sr.index, autopct="%0.2f")
+                    st.pyplot(fig)
+                with col2:
+                    st.dataframe(top_users_contribution_df)
+            else:
+                # Display a warning message for the case when the selected user is not 'All'
+                st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'Most Active User' analysis is for all users.")
+            st.markdown("##")
+                
+        # emoji analysis
+        if "Emoji Analysis" in analysis_filter:
+            emojis_freq_df = utils.emoji_analysis(selected_user,df)
+            st.title("Emoji Analysis")
+
+            col1,col2 = st.columns(2)
+
+            with col1:
+                fig, ax = plt.subplots()
+                ax.bar(emojis_freq_df["Emoji"].head(),emojis_freq_df["Frequency"].head(),color='#25d366')
+                ax.set_xlabel('Emoji')
+                ax.set_ylabel('Frequency')
+                st.pyplot(fig)
+            with col2: 
+                st.dataframe(emojis_freq_df)
+            st.markdown("##")
+
+        # daily timeline area
+        if "Daliy Timeline" in analysis_filter:
+            st.title("Daily Timeline")
+            daily_timeline = utils.get_daily_timeline(selected_user, df)
+            fig, ax = plt.subplots()
+            ax.plot(daily_timeline['Date'].tail(30), daily_timeline['Message'].tail(30), color='#25d366')
+            ax.set_xlabel('Date')
+            ax.set_ylabel('Message Count')
+            plt.xticks(rotation='vertical')
+            st.pyplot(fig)
+            st.markdown("##")
+
+        # activity map Area
+        if "Activity Map" in analysis_filter:
+            st.title('Activity Map')
+            col1,col2 = st.columns(2)
+
+            with col1:
+                st.header("Top messaging days")
+                active_day_sr = utils.get_week_activity_map(selected_user,df)
+                fig,ax = plt.subplots()
+                ax.bar(active_day_sr.index,active_day_sr.values,color='#25d366')
+                ax.set_xlabel('Days of the week')
+                ax.set_ylabel('Message Count')
+                plt.xticks(rotation='vertical')
+                st.pyplot(fig)
+
+            with col2:
+                st.header("Top messaging months")
+                active_month_sr = utils.get_month_activity_map(selected_user, df)
+                fig, ax = plt.subplots()
+                ax.bar(active_month_sr.index, active_month_sr.values,color='#25d366')
+                ax.set_xlabel('Month name')
+                ax.set_ylabel('Message Count')
+                plt.xticks(rotation='vertical')
+                st.pyplot(fig)
+            st.markdown("##")
+
+        #WordClouds
         if "Word Cloud" in analysis_filter:
             st.title("Word Cloud")
             wc = utils.generate_wordcloud(selected_user,df)
@@ -75,46 +149,22 @@ if uploaded_file:
             ax.set_yticklabels([])
             ax.imshow(wc)
             st.pyplot(fig)
-
-        if "Most Active Users" in analysis_filter:
-            # finding the busiest users in the group(Group level)
-            if selected_user == 'All':
-                st.title('Most Active Users')
-                top_user_sr, top_users_contribution_df = utils.most_active_users(df)
-                fig, ax = plt.subplots()
-                col1, col2 = st.columns(2)
-                with col1:
-                    ax.bar(top_user_sr.index, top_user_sr.values,color='#25d366')
-                    ax.set_xlabel('Users')
-                    ax.set_ylabel('Message Count')
-                    plt.xticks(rotation='vertical')
-                    st.pyplot(fig)
-                with col2:
-                    st.dataframe(top_users_contribution_df)
-            else:
-                # Display a warning message for the case when the selected user is not 'All'
-                st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'Most Active User' analysis is for all users.")
             st.markdown("##")
-                
+            
 
+        #---- DOWNLOAD SECTION ----
 
+        # def generate_html_download_link(fig):
+        #     # Credit Plotly: https://discuss.streamlit.io/t/download-plotly-plot-as-html/4426/2
+        #     towrite = StringIO()
+        #     fig.write_html(towrite, include_plotlyjs="cdn")
+        #     towrite = BytesIO(towrite.getvalue().encode())
+        #     b64 = base64.b64encode(towrite.read()).decode()
+        #     href = f'<a href="data:text/html;charset=utf-8;base64, {b64}" download="plot.html">Download Plot</a>'
+        #     return st.markdown(href, unsafe_allow_html=True)
 
-
-st.markdown("##")
-
-# ---- DOWNLOAD SECTION ----
-
-# def generate_html_download_link(fig):
-#     # Credit Plotly: https://discuss.streamlit.io/t/download-plotly-plot-as-html/4426/2
-#     towrite = StringIO()
-#     fig.write_html(towrite, include_plotlyjs="cdn")
-#     towrite = BytesIO(towrite.getvalue().encode())
-#     b64 = base64.b64encode(towrite.read()).decode()
-#     href = f'<a href="data:text/html;charset=utf-8;base64, {b64}" download="plot.html">Download Plot</a>'
-#     return st.markdown(href, unsafe_allow_html=True)
-
-# st.subheader('Downloads:')
-# generate_html_download_link(fig)
+        # st.subheader('Downloads:')
+        # generate_html_download_link(fig)
 
 st.markdown("##")
 

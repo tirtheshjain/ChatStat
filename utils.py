@@ -2,6 +2,7 @@ import pandas as pd
 import emoji
 from urlextract import URLExtract
 from wordcloud import WordCloud
+from collections import Counter
 
 def top_stats(selected_user, df):
     if selected_user != 'All':
@@ -33,6 +34,72 @@ def top_stats(selected_user, df):
 
     return message_count, words_count, media_count, links_count, emojis_count
 
+def most_active_users(df):
+    # Count the number of messages sent by each user and get the top users
+    top_users_sr = df['User'].value_counts().head()
+
+    # Calculate the percentage of messages sent by each user
+    total_messages = df.shape[0]
+    user_percentages_sr = (top_users_sr/ total_messages * 100).round(2)
+
+    # Create a DataFrame with user names and their message percentages
+    top_users_contribution_df = pd.DataFrame({'User': user_percentages_sr.index, 'Contribution(%)': user_percentages_sr}).reset_index(drop=True)
+
+    return top_users_sr, top_users_contribution_df
+
+def emoji_analysis(selected_user,df):
+    if selected_user != 'All':
+        df = df[df['User'] == selected_user]
+    
+    # Combine all messages into a single string
+    all_messages = ' '.join(df['Message'])
+
+    # Extract emojis from the combined messages
+    emojis_list = [c for c in all_messages if c in emoji.EMOJI_DATA]
+
+    # Count the frequency of each emoji
+    emojis_freq = Counter(emojis_list)
+
+    # Convert the emoji frequency dictionary to a DataFrame
+    emojis_freq_df = pd.DataFrame(list(emojis_freq.items()), columns=['Emoji', 'Frequency'])
+
+    # Sort the DataFrame by frequency (descending order)
+    emojis_freq_df = emojis_freq_df.sort_values(by='Frequency', ascending=False)
+
+    # Reset the DataFrame index
+    emojis_freq_df = emojis_freq_df.reset_index(drop=True)
+
+    return emojis_freq_df
+
+
+def get_daily_timeline(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['User'] == selected_user]
+
+    daily_timeline = df.groupby('Date').count()['Message'].reset_index()
+
+    return daily_timeline
+
+
+def get_week_activity_map(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['User'] == selected_user]
+
+    week_activity_map_sr = df['day_name'].value_counts()
+    return week_activity_map_sr
+
+
+def get_month_activity_map(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['User'] == selected_user]
+
+    month_activity_map_sr = df['month_name'].value_counts()
+    return month_activity_map_sr
+
+
 def generate_wordcloud(selected_user, df):
     # Load stop words
     # with open('stop_hinglish.txt', 'r') as f:
@@ -60,15 +127,5 @@ def generate_wordcloud(selected_user, df):
 
     return wordcloud
 
-def most_active_users(df):
-    # Count the number of messages sent by each user and get the top users
-    top_users_sr = df['User'].value_counts().head()
-
-    # Calculate the percentage of messages sent by each user
-    total_messages = df.shape[0]
-    user_percentages_sr = (top_users_sr/ total_messages * 100).round(2)
-
-    # Create a DataFrame with user names and their message percentages
-    top_users_contribution_df = pd.DataFrame({'User': user_percentages_sr.index, 'Contribution(%)': user_percentages_sr}).reset_index(drop=True)
-
-    return top_users_sr, top_users_contribution_df
+    
+    

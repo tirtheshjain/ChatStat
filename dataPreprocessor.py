@@ -18,6 +18,13 @@ def preprocess(file):
     # Create the DataFrame 
     df = pd.DataFrame(processed_data, columns = ['Date', 'Time', 'User', 'Message']) 
 
+    df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'],errors='coerce')
+    df = df.dropna(subset=['datetime'])
+    df['year'] = df['datetime'].dt.year
+    df['month_name'] = df['datetime'].dt.month_name()
+    df['day_name'] = df['datetime'].dt.day_name()
+
+
     # filter the DataFrame to remove whatsapp info message
     df = df[df.Message != '']
     
