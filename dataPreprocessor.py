@@ -2,34 +2,31 @@ import pandas as pd
 
 def preprocess(file):
     # parse text and create list of lists structure
-    # remove first whatsapp info message
-    # dataset = data[1:]
-    cleaned_data = []
+    processed_data = []
     for line in file:
         # grab the info and cut it out
         line = str(line.decode('utf-8'))
         date = line.split(",")[0]
-        line2 = line[len(date):]
-        time = line2.split("-")[0][2:]
-        line3 = line2[len(time):]
-        name = line3.split(":")[0][4:]
-        line4 = line3[len(name):]
-        message = line4[6:-1] # strip newline charactor
+        line = line[len(date):]
+        time = line.split("-")[0][2:]
+        line = line[2 + len(time):]
+        user = line.split(":")[0][2:]
+        line = line[2 + len(user):]
+        message = line[2:-1] # strip newline character
+        processed_data.append([date, time, user, message])
 
-        #print(date, time, name, message)
-        cleaned_data.append([date, time, name, message])
-
-    
     # Create the DataFrame 
-    df = pd.DataFrame(cleaned_data, columns = ['Date', 'Time', 'Name', 'Message']) 
+    df = pd.DataFrame(processed_data, columns = ['Date', 'Time', 'User', 'Message']) 
 
-    # # check formatting 
-    # if 0:
-    #     print(df.head())
-    #     print(df.tail())
+    df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'],errors='coerce')
+    df = df.dropna(subset=['datetime'])
+    df['year'] = df['datetime'].dt.year
+    df['month_name'] = df['datetime'].dt.month_name()
+    df['day_name'] = df['datetime'].dt.day_name()
 
-    # Save it!
+
+    # filter the DataFrame to remove whatsapp info message
     df = df[df.Message != '']
-    df = df[df.Message != '<Media omitted>']
+    
 
     return df
