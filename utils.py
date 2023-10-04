@@ -3,6 +3,8 @@ import emoji
 from urlextract import URLExtract
 from wordcloud import WordCloud
 from collections import Counter
+import io
+import base64  # Standard Python Module
 
 def top_stats(selected_user, df):
     if selected_user != 'All':
@@ -34,7 +36,7 @@ def top_stats(selected_user, df):
 
     return message_count, words_count, media_count, links_count, emojis_count
 
-def most_active_users(df):
+def most_chat_users(df):
     # Count the number of messages sent by each user and get the top users
     top_users_sr = df['User'].value_counts().head()
 
@@ -77,7 +79,7 @@ def get_daily_timeline(selected_user,df):
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
 
-    daily_timeline = df.groupby('Date').count()['Message'].reset_index()
+    daily_timeline = df.groupby('Date',sort = False).count()['Message'].reset_index()
 
     return daily_timeline
 
@@ -122,10 +124,25 @@ def generate_wordcloud(selected_user, df):
     #df['message'] = df['message'].apply(remove_stop_words)
 
     # Create a WordCloud
-    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='#E5E5E5')
+    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
     wordcloud = wc.generate(" ".join(df['Message']))
 
     return wordcloud
+
+
+# Generates HTML download links for a list of Matplotlib figures.
+# Args: figures: A list of Matplotlib figures.
+# Returns: A list of HTML download links, one for each figure.
+def generate_html_download_link(figures):
+  links = []
+  for i, fig in enumerate(figures):
+    towrite = io.BytesIO()
+    fig.savefig(towrite, format="png")
+    towrite.seek(0)
+    b64 = base64.b64encode(towrite.read()).decode()
+    href = f'<a href="data:image/png;base64, {b64}" download="plot{i}.png"> Download Plot{i} </a>'
+    links.append(href)
+  return links
 
     
     

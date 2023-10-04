@@ -1,8 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 # import streamlit_authenticator as stauth
-import base64  # Standard Python Module
-from io import StringIO, BytesIO  # Standard Python Module
 #import streamlit_lottie as st_lottie
 import requests
 import json
@@ -11,6 +9,7 @@ import numpy as np
 import pandas as pd
 import dataPreprocessor, utils
 import math
+import datetime
 
 st.set_page_config(page_title="ChatStat ",page_icon=":chart:",layout="wide")
 st.title(":chart: ChatStat | The WhatsApp Chat Analyzer")
@@ -20,7 +19,7 @@ st.sidebar.title("Welcome To ChatStat !")
 st.sidebar.subheader("Filters")
 analysis_filter = st.sidebar.multiselect(
     "Analysis",
-    options=["Top Statistics","Daliy Timeline","Activity Map","Most Active Users","Word Cloud","Most Common words","Emoji Analysis","Sentiment Analysis"],
+    options=["Top Statistics","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Most Common words","Emoji Analysis","Sentiment Analysis"],
     default="Top Statistics"
 )
 
@@ -28,7 +27,7 @@ analysis_filter = st.sidebar.multiselect(
 # ---- UPLOAD SECTION ----
 st.markdown("##")
 st.text("WhatsApp > Chat > Three dots > More > Export chat > Without media > Send or save the exported .txt file to your device.")
-uploaded_file = st.file_uploader("Upload a WhatsApp export '.TXT' file:")
+uploaded_file = st.file_uploader("Upload a WhatsApp Chat Exported (*.txt) File to Get Insights:")
 
 if uploaded_file:
     df = dataPreprocessor.preprocess(uploaded_file)
@@ -39,13 +38,14 @@ if uploaded_file:
     selected_user = st.sidebar.selectbox("User",user_list)
 
     if st.button("Show Analysis"):
+        figures = []
         # Top Stats Area
         if "Top Statistics" in analysis_filter:
             message_count, words_count, media_count, links_count, emojis_count = utils.top_stats(selected_user,df)
             st.title("Top Statistics")
             col1, col2, col3 = st.columns(3)
             col4, col5, col6 = st.columns(3)
-
+            col7,col8,col9 = st.columns(3)
             with col1:
                 st.header("Total Messages")
                 st.title(message_count)
@@ -64,27 +64,31 @@ if uploaded_file:
             with col6:
                 st.header("Emojis Shared")
                 st.title(emojis_count)
+           
             st.markdown("##")
 
-        # Most Active Users Area
-        if "Most Active Users" in analysis_filter:
-            # finding the busiest users in the group(Group level)
+        # User Who Chats the Most Area
+        if "User Who Chats the Most" in analysis_filter:
+            # finding the User Who Chats the Most (group level)
             if selected_user == 'All':
-                st.title('Most Active Users')
-                top_user_sr, top_users_contribution_df = utils.most_active_users(df)
+                st.title('User Who Chats the Most')
+                top_user_sr, top_users_contribution_df = utils.most_chat_users(df)
                 col1, col2 = st.columns(2)
                 with col1:
                     fig, ax = plt.subplots()
-                    ax.pie(top_user_sr.values,labels=top_user_sr.index, autopct="%0.2f")
+                    ax.bar(top_user_sr.index, top_user_sr.values,color='#25d366')
+                    plt.xticks(rotation='vertical')
                     st.pyplot(fig)
+                    figures.append(fig)
                 with col2:
                     st.dataframe(top_users_contribution_df)
             else:
                 # Display a warning message for the case when the selected user is not 'All'
                 st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'Most Active User' analysis is for all users.")
+             
             st.markdown("##")
                 
-        # emoji analysis
+        # emoji analysis Area
         if "Emoji Analysis" in analysis_filter:
             emojis_freq_df = utils.emoji_analysis(selected_user,df)
             st.title("Emoji Analysis")
@@ -97,20 +101,22 @@ if uploaded_file:
                 ax.set_xlabel('Emoji')
                 ax.set_ylabel('Frequency')
                 st.pyplot(fig)
+                figures.append(fig)
             with col2: 
                 st.dataframe(emojis_freq_df)
             st.markdown("##")
 
         # daily timeline area
-        if "Daliy Timeline" in analysis_filter:
-            st.title("Daily Timeline")
+        if "Daily Timeline" in analysis_filter:
+            st.title("Daily Timeline (Last 15 days)")
             daily_timeline = utils.get_daily_timeline(selected_user, df)
             fig, ax = plt.subplots()
-            ax.plot(daily_timeline['Date'].tail(30), daily_timeline['Message'].tail(30), color='#25d366')
+            ax.plot(daily_timeline['Date'].tail(15), daily_timeline['Message'].tail(15), color='#25d366')
             ax.set_xlabel('Date')
             ax.set_ylabel('Message Count')
             plt.xticks(rotation='vertical')
             st.pyplot(fig)
+            figures.append(fig)
             st.markdown("##")
 
         # activity map Area
@@ -127,6 +133,7 @@ if uploaded_file:
                 ax.set_ylabel('Message Count')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
+                figures.append(fig)
 
             with col2:
                 st.header("Top messaging months")
@@ -137,36 +144,40 @@ if uploaded_file:
                 ax.set_ylabel('Message Count')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
+                figures.append(fig)
+
             st.markdown("##")
 
-        #WordClouds
+        #WordClouds Area
         if "Word Cloud" in analysis_filter:
             st.title("Word Cloud")
-            wc = utils.generate_wordcloud(selected_user,df)
-            fig, ax = plt.subplots()
-            # Clear x-axis and y-axis tick labels
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
-            ax.imshow(wc)
-            st.pyplot(fig)
-            st.markdown("##")
+            wc = utils.generate_wordcloud(selected_user, df)
             
+            fig, ax = plt.subplots(figsize=(5,5))
+            
+            # Remove the axis and tick labels
+            ax.set_axis_off()
 
-        #---- DOWNLOAD SECTION ----
+            # Display the word cloud
+            ax.imshow(wc)
 
-        # def generate_html_download_link(fig):
-        #     # Credit Plotly: https://discuss.streamlit.io/t/download-plotly-plot-as-html/4426/2
-        #     towrite = StringIO()
-        #     fig.write_html(towrite, include_plotlyjs="cdn")
-        #     towrite = BytesIO(towrite.getvalue().encode())
-        #     b64 = base64.b64encode(towrite.read()).decode()
-        #     href = f'<a href="data:text/html;charset=utf-8;base64, {b64}" download="plot.html">Download Plot</a>'
-        #     return st.markdown(href, unsafe_allow_html=True)
+            # Plot the word cloud in Streamlit
+            st.pyplot(fig)
+            figures.append(fig)
+            st.markdown("##")
 
-        # st.subheader('Downloads:')
-        # generate_html_download_link(fig)
+        # ---- DOWNLOAD SECTION Area ----
+        st.subheader('Downloads:')
+        links = utils.generate_html_download_link(figures)
+        downloads = "<p>"
+        for href in links:
+            downloads += href 
+        downloads += "</p"
+        st.markdown(downloads, unsafe_allow_html=True)
+        st.markdown("##")
 
-st.markdown("##")
+
+#---- Footer Area----
 
 hide_st_style = """
     <style>
@@ -175,6 +186,12 @@ hide_st_style = """
     </style>
 """
 st.markdown(hide_st_style,unsafe_allow_html=True)
+
+# Get the current date and time
+now = datetime.datetime.now()
+
+# Format the copyright information
+copyright = f"&copy; {now.year} ChatStat"
 
 footer = """
     <style>
@@ -188,16 +205,17 @@ footer = """
         text-align: center;
         }
     </style>
-    <div class="footer">
-        <p>&copy; 2023 ChatStat</p>
-        <p>Developed with ❤ by Tirthesh Jain & Aditya Tomar</p>
-    </div>
+    <footer class="footer">
+        🔒Everything is processed in your browser. No data leaves your device.</br>
+        """+ copyright +""".
+        Developed with ❤ by Tirthesh Jain & Aditya Tomar
+    </footer>
     """
 st.markdown(footer,unsafe_allow_html=True)
 
 # #spinner
 # with st.spinner("Just wait"):
-#     t.sleep(5)
+# t.sleep(5)
 
 # st.balloons()
 
