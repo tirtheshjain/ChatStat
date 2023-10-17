@@ -165,6 +165,24 @@ if uploaded_file:
             st.pyplot(fig)
             figures.append(fig)
             st.markdown("##")
+        
+        # -----Sentiment analysis--------------------------
+        if "Sentiment Analysis" in analysis_filter:
+            st.title("Sentiment Analysis")
+            
+            positive, negative, neutral = utils.sentiment_analysis(selected_user, df)
+            
+            labels = ['Positive', 'Negative', 'Neutral']
+            data = [positive, negative, neutral]
+            fig, ax = plt.subplots()
+            
+            ax.pie(data, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+            ax.axis('equal')
+            
+            st.pyplot(fig)
+            figures.append(fig)
+            st.markdown("##")
+            
 
         # ---- DOWNLOAD SECTION Area ----
         st.subheader('Downloads:')
@@ -175,6 +193,7 @@ if uploaded_file:
         downloads += "</p"
         st.markdown(downloads, unsafe_allow_html=True)
         st.markdown("##")
+        
 
 
 #---- Footer Area----

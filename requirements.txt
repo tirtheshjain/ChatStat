@@ -9,4 +9,5 @@ pandas
 emojis
 urlextract
 matplotlib
+nltk
 wordcloud
