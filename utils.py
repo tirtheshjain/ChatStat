@@ -5,7 +5,7 @@ from wordcloud import WordCloud
 from collections import Counter
 import io
 import nltk
-nltk.download('vader_lexicon')
+nltk.downloader.download('vader_lexicon')
 from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
 

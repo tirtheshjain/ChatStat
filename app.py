@@ -175,7 +175,7 @@ if uploaded_file:
             data = [positive, negative, neutral]
             fig, ax = plt.subplots()
             
-            ax.pie(data, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+            ax.pie(data, labels=labels, autopct='%1.1f%%', startangle=90)
             ax.axis('equal')
             
             st.pyplot(fig)
