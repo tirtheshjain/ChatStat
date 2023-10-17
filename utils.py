@@ -104,9 +104,9 @@ def get_month_activity_map(selected_user,df):
 
 def generate_wordcloud(selected_user, df):
     # Load stop words
-    # with open('stop_hinglish.txt', 'r') as f:
-    #     stop_words = f.read().splitlines()
-
+    with open('stop_words.txt', 'r') as f:
+        stop_words = f.read().splitlines()
+        
     # Filter the DataFrame based on the selected user
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
@@ -115,13 +115,13 @@ def generate_wordcloud(selected_user, df):
     df = df[df['Message'] != '<Media omitted>']
 
     # Define a function to remove stop words from a message
-    # def remove_stop_words(message):
-    #     words = message.lower().split()
-    #     filtered_words = [word for word in words if word not in stop_words]
-    #     return " ".join(filtered_words)
+    def remove_stop_words(message):
+        words = message.lower().split()
+        filtered_words = [word for word in words if word not in stop_words]
+        return " ".join(filtered_words)
 
     # Apply stop word removal to the 'message' column
-    #df['message'] = df['message'].apply(remove_stop_words)
+    df['Message'] = df['Message'].apply(remove_stop_words)
 
     # Create a WordCloud
     wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
