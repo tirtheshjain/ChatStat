@@ -4,6 +4,9 @@ from urlextract import URLExtract
 from wordcloud import WordCloud
 from collections import Counter
 import io
+import nltk
+nltk.download('vader_lexicon')
+from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
 
 def top_stats(selected_user, df):
@@ -129,6 +132,28 @@ def generate_wordcloud(selected_user, df):
 
     return wordcloud
 
+# Function to do sentiment analysis
+# Returns the count of number of positive, negative and neutral sentiment sentences
+def sentiment_analysis(selected_user, df):
+    if(selected_user != 'All'):
+        df = df[df['User']==selected_user]
+        
+    sent = SentimentIntensityAnalyzer()
+    positive = 0
+    negative = 0
+    neutral = 0
+    df = df[df['Message']!='<Media omitted>']
+    for msg in df['Message']:
+        scores = sent.polarity_scores(msg)
+        key_max = max(scores, key=lambda x: scores[x])
+        if(key_max=='neg'):
+            negative+=1
+        elif(key_max=='pos'):
+            positive+=1
+        else:
+            neutral+=1
+            
+    return positive, negative, neutral
 
 # Generates HTML download links for a list of Matplotlib figures.
 # Args: figures: A list of Matplotlib figures.
