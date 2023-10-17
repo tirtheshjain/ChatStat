@@ -38,14 +38,13 @@ if uploaded_file:
     selected_user = st.sidebar.selectbox("User",user_list)
 
     if st.button("Show Analysis"):
-        figures = []
+        figures = []    #list of all plots generated
         # Top Stats Area
         if "Top Statistics" in analysis_filter:
             message_count, words_count, media_count, links_count, emojis_count = utils.top_stats(selected_user,df)
             st.title("Top Statistics")
             col1, col2, col3 = st.columns(3)
             col4, col5, col6 = st.columns(3)
-            col7,col8,col9 = st.columns(3)
             with col1:
                 st.header("Total Messages")
                 st.title(message_count)
@@ -84,7 +83,7 @@ if uploaded_file:
                     st.dataframe(top_users_contribution_df)
             else:
                 # Display a warning message for the case when the selected user is not 'All'
-                st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'Most Active User' analysis is for all users.")
+                st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'User Who Chats the Most' analysis is for all users.")
              
             st.markdown("##")
                 
@@ -153,7 +152,7 @@ if uploaded_file:
             st.title("Word Cloud")
             wc = utils.generate_wordcloud(selected_user, df)
             
-            fig, ax = plt.subplots(figsize=(5,5))
+            fig, ax = plt.subplots()
             
             # Remove the axis and tick labels
             ax.set_axis_off()
@@ -172,7 +171,7 @@ if uploaded_file:
         downloads = "<p>"
         for href in links:
             downloads += href 
-        downloads += "</p"
+        downloads += "</p>"
         st.markdown(downloads, unsafe_allow_html=True)
         st.markdown("##")
 
@@ -213,11 +212,6 @@ footer = """
     """
 st.markdown(footer,unsafe_allow_html=True)
 
-# #spinner
-# with st.spinner("Just wait"):
-# t.sleep(5)
-
-# st.balloons()
 
 
 
