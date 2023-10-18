@@ -1,4 +1,5 @@
 a
+aa
 aadi
 aaj
 aap
@@ -101,7 +102,6 @@ bani
 bas
 bata
 batao
-bc
 be
 became
 because
@@ -264,6 +264,8 @@ good
 got
 gotten
 greetings
+h
+ha
 haan
 had
 hadd
@@ -1149,7 +1151,6 @@ nor
 https
 pdf
 us
-t
 ve
 not
 only
@@ -1175,8 +1176,6 @@ b
 haa
 too
 very
-s
-t
 can
 will
 just

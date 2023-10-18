@@ -1,13 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-# import streamlit_authenticator as stauth
-#import streamlit_lottie as st_lottie
-import requests
-import json
-import time as t 
-import numpy as np
-import pandas as pd
 import dataPreprocessor, utils
+import numpy as np  
 import math
 import datetime
 
@@ -19,15 +13,15 @@ st.sidebar.title("Welcome To ChatStat !")
 st.sidebar.subheader("Filters")
 analysis_filter = st.sidebar.multiselect(
     "Analysis",
-    options=["Top Statistics","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Most Common words","Emoji Analysis","Sentiment Analysis"],
+    options=["Top Statistics","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Emoji Analysis","Sentiment Analysis"],
     default="Top Statistics"
 )
 
 
 # ---- UPLOAD SECTION ----
 st.markdown("##")
-st.text("WhatsApp > Chat > Three dots > More > Export chat > Without media > Send or save the exported .txt file to your device.")
-uploaded_file = st.file_uploader("Upload a WhatsApp Chat Exported (*.txt) File to Get Insights:")
+st.write(":point_right: WhatsApp > Chat > Three dots > More > Export chat > Without media > Send or save the exported .txt file to your device.")
+uploaded_file = st.file_uploader(":file_folder: Upload a WhatsApp Chat Exported (*.txt) File to Get Insights:",type=["txt"])
 
 if uploaded_file:
     df = dataPreprocessor.preprocess(uploaded_file)
@@ -114,6 +108,7 @@ if uploaded_file:
             ax.set_xlabel('Date')
             ax.set_ylabel('Message Count')
             plt.xticks(rotation='vertical')
+            fig.set_figheight(3)  # Set height in inches
             st.pyplot(fig)
             figures.append(fig)
             st.markdown("##")
@@ -150,37 +145,64 @@ if uploaded_file:
         #WordClouds Area
         if "Word Cloud" in analysis_filter:
             st.title("Word Cloud")
-            wc = utils.generate_wordcloud(selected_user, df)
-            
-            fig, ax = plt.subplots()
-            
-            # Remove the axis and tick labels
-            ax.set_axis_off()
+            col1,col2 = st.columns(2)
+            wc,most_common_word_df = utils.generate_wordcloud(selected_user, df)
 
-            # Display the word cloud
-            ax.imshow(wc)
+            with col1:
+                fig, ax = plt.subplots()
+                # Remove the axis and tick labels
+                ax.set_axis_off()
+                # Display the word cloud
+                ax.imshow(wc)
+                # Plot the word cloud in Streamlit
+                st.pyplot(fig)
+                figures.append(fig)
+            
+            with col2:
+                st.dataframe(most_common_word_df)
 
-            # Plot the word cloud in Streamlit
-            st.pyplot(fig)
-            figures.append(fig)
             st.markdown("##")
+
+            
         
-        # -----Sentiment analysis--------------------------
+        # -----Sentiment analysis Area------------------
         if "Sentiment Analysis" in analysis_filter:
             st.title("Sentiment Analysis")
-            
-            positive, negative, neutral = utils.sentiment_analysis(selected_user, df)
-            
-            labels = ['Positive', 'Negative', 'Neutral']
-            data = [positive, negative, neutral]
-            fig, ax = plt.subplots()
-            
-            ax.pie(data, labels=labels, autopct='%1.1f%%', startangle=90)
-            ax.axis('equal')
-            
-            st.pyplot(fig)
-            figures.append(fig)
+            col1, col2 = st.columns(2)
+
+            with col1:
+                positive, negative, neutral = utils.sentiment_analysis(selected_user, df)
+
+                labels = ['Positive', 'Negative', 'Neutral']
+                data = [positive, negative, neutral]
+
+                # Create a donut chart
+                fig, ax = plt.subplots()
+                ax.pie(data, startangle=90, wedgeprops=dict(width=0.4), autopct='%.1f%%', textprops={'rotation': 90})
+                ax.axis('equal')
+
+                # Add a circle in the center to create a donut hole
+                center_circle = plt.Circle((0, 0), 0.70, fc='white')
+                fig.gca().add_artist(center_circle)
+
+                # Display the legends
+                plt.legend(labels, loc='best')
+
+                st.pyplot(fig)
+                figures.append(fig)
+
+            with col2:
+                if selected_user == 'All':
+                    # Get the sentiment contributors
+                    contributors = utils.user_sentiment_contributors(df)
+
+                    # Display the most positive, negative, and neutral contributors
+                    st.write("Most Positive User:", contributors['Most Positive User'])
+                    st.write("Most Negative User:", contributors['Most Negative User'])
+                    st.write("Most Neutral User:", contributors['Most Neutral User'])
+                    
             st.markdown("##")
+
             
 
         # ---- DOWNLOAD SECTION Area ----

@@ -1,9 +1,4 @@
 streamlit
-streamlit-authenticator
-streamlit-lottie
-requests
-json
-time
 numpy
 pandas
 emojis
