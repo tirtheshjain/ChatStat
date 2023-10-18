@@ -9,6 +9,7 @@ nltk.downloader.download('vader_lexicon')
 from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
 
+# Function calculate top statistics
 def top_stats(selected_user, df):
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
@@ -39,6 +40,8 @@ def top_stats(selected_user, df):
 
     return message_count, words_count, media_count, links_count, emojis_count
 
+
+# Function find most active users
 def most_chat_users(df):
     # Count the number of messages sent by each user and get the top users
     top_users_sr = df['User'].value_counts().head()
@@ -52,6 +55,8 @@ def most_chat_users(df):
 
     return top_users_sr, top_users_contribution_df
 
+
+# Function return Emojis used and frequency in dataFrame
 def emoji_analysis(selected_user,df):
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
@@ -87,6 +92,7 @@ def get_daily_timeline(selected_user,df):
     return daily_timeline
 
 
+# ---- utility functions for activity map -----
 def get_week_activity_map(selected_user,df):
 
     if selected_user != 'All':
@@ -105,17 +111,19 @@ def get_month_activity_map(selected_user,df):
     return month_activity_map_sr
 
 
+# ---- utility functions for word cloud-----
 def generate_wordcloud(selected_user, df):
     # Load stop words
     with open('stop_words.txt', 'r') as f:
         stop_words = f.read().splitlines()
-        
+
     # Filter the DataFrame based on the selected user
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
 
-    # Remove rows with '<Media omitted>' in the 'message' column
+    # Remove rows with '<Media omitted> & deleted message' in the 'message' column
     df = df[df['Message'] != '<Media omitted>']
+    df = df[df['Message'] != 'This message was deleted']
 
     # Define a function to remove stop words from a message
     def remove_stop_words(message):
@@ -126,36 +134,98 @@ def generate_wordcloud(selected_user, df):
     # Apply stop word removal to the 'message' column
     df['Message'] = df['Message'].apply(remove_stop_words)
 
+    # Combine all messages into a single string
+    all_messages = ' '.join(df['Message'])
+
+    # Remove emojis from the combined messages
+    all_messages = ''.join([c for c in all_messages if c not in emoji.EMOJI_DATA])
+
     # Create a WordCloud
     wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
-    wordcloud = wc.generate(" ".join(df['Message']))
+    wordcloud = wc.generate(all_messages)
 
-    return wordcloud
+    # Calculate the most common words and create a DataFrame
+    words = all_messages.split()
+    most_common_word_df = pd.DataFrame(pd.Series(words).value_counts().head().reset_index())
+    most_common_word_df.columns = ['Most Common Words', 'Frequency']
 
-# Function to do sentiment analysis
-# Returns the count of number of positive, negative and neutral sentiment sentences
+    return wordcloud, most_common_word_df
+
+
+# ----- utility functions for sentiment analysis--------
+
+# Function to calculate the sentiment score for a given message
+def calculate_sentiment_score(message, sent):
+    scores = sent.polarity_scores(message)
+    return scores['compound']
+
+# Function to identify the users with the most positive, negative, and neutral sentiments
+def user_sentiment_contributors(df):
+    # Initialize the SentimentIntensityAnalyzer
+    sent = SentimentIntensityAnalyzer()
+    # Create a dictionary to store compound sentiment scores & tootal message for each user
+    user_scores = {}
+    user_message_counts = {}
+    
+    # Remove rows with '<Media omitted> & deleted message' in the 'message' column
+    df = df[df['Message'] != '<Media omitted>']
+    df = df[df['Message'] != 'This message was deleted']
+
+    # Iterate through the DataFrame to calculate sentiment scores for each user
+    for index, row in df.iterrows():
+        user = row['User']
+        message = row['Message']
+        compound_score = calculate_sentiment_score(message, sent)
+
+        # Update the total compound sentiment score and message count for the user
+        user_scores[user] = user_scores.get(user, 0) + compound_score
+        user_message_counts[user] = user_message_counts.get(user, 0) + 1
+    
+    # Calculate weighted scores for each user based on sentiment and message count
+    weighted_scores = {user: user_scores[user] / user_message_counts[user] for user in user_scores}
+
+    most_positive_user = max(user_scores, key=lambda user: weighted_scores[user])
+    most_negative_user = min(user_scores, key=lambda user: weighted_scores[user])
+    most_neutral_user = min(user_scores, key=lambda user: abs(weighted_scores[user]))
+
+    return {
+        'Most Positive User': most_positive_user,
+        'Most Negative User': most_negative_user,
+        'Most Neutral User': most_neutral_user
+    }
+
+# Function to calculate the count of positive, negative, and neutral sentiment sentences
 def sentiment_analysis(selected_user, df):
-    if(selected_user != 'All'):
-        df = df[df['User']==selected_user]
-        
+    # Filter the DataFrame based on the selected user
+    if selected_user != 'All':
+        df = df[df['User'] == selected_user]
+
+    # Initialize the SentimentIntensityAnalyzer
     sent = SentimentIntensityAnalyzer()
     positive = 0
     negative = 0
     neutral = 0
-    df = df[df['Message']!='<Media omitted>']
+
+    # Remove rows with '<Media omitted> & deleted message' in the 'message' column
+    df = df[df['Message'] != '<Media omitted>']
+    df = df[df['Message'] != 'This message was deleted']
+
+    # Iterate through the messages and count the sentiment categories
     for msg in df['Message']:
-        scores = sent.polarity_scores(msg)
-        key_max = max(scores, key=lambda x: scores[x])
-        if(key_max=='neg'):
-            negative+=1
-        elif(key_max=='pos'):
-            positive+=1
+        compound_score = calculate_sentiment_score(msg, sent)
+
+        # Update sentiment category counts based on compound score
+        if compound_score > 0.05:
+            positive += 1
+        elif compound_score < -0.05:
+            negative += 1
         else:
-            neutral+=1
-            
+            neutral += 1
+
     return positive, negative, neutral
 
-# Generates HTML download links for a list of Matplotlib figures.
+
+# Generates HTML download links for a list of plots.
 # Args: figures: A list of Matplotlib figures.
 # Returns: A list of HTML download links, one for each figure.
 def generate_html_download_link(figures):
@@ -165,7 +235,7 @@ def generate_html_download_link(figures):
     fig.savefig(towrite, format="png")
     towrite.seek(0)
     b64 = base64.b64encode(towrite.read()).decode()
-    href = f'<a href="data:image/png;base64, {b64}" download="plot{i}.png"> Download Plot{i} </a>'
+    href = f'<a href="data:image/png;base64, {b64}" download="plot{i}.png"> Plot{i} </a>'
     links.append(href)
   return links
 
