@@ -1,8 +1,7 @@
-streamlit
-numpy
-pandas
-emojis
-urlextract
-matplotlib
-nltk
-wordcloud
+emoji==2.8.0
+matplotlib==3.7.2
+nltk==3.8.1
+pandas==2.1.1
+streamlit==1.27.0
+urlextract==1.8.0
+wordcloud==1.9.2
