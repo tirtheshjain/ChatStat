@@ -6,6 +6,8 @@ from collections import Counter
 import io
 import nltk
 nltk.downloader.download('vader_lexicon')
+nltk.downloader.download('stopwords')
+from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
 
@@ -132,7 +134,14 @@ def get_day_hour_heatmap(selected_user, df):
 def generate_wordcloud(selected_user, df):
     # Load stop words
     with open('stop_words.txt', 'r') as f:
-        stop_words = f.read().splitlines()
+        custom_words = set(f.read().splitlines())
+        
+    # Importing set of stopwords from nltk
+    stop_words = set(stopwords.words('english'))
+    
+    # maerging the two sets one is custom created and another is from nltk and storing it as a list
+    stop_words = list(stop_words.union(custom_words))
+
 
     # Filter the DataFrame based on the selected user
     if selected_user != 'All':
