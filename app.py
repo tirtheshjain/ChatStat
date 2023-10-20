@@ -1,7 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import dataPreprocessor, utils
-import numpy as np  
 import math
 import datetime
 
@@ -60,6 +59,7 @@ if uploaded_file:
            
             st.markdown("##")
 
+
         # User Who Chats the Most Area
         if "User Who Chats the Most" in analysis_filter:
             # finding the User Who Chats the Most (group level)
@@ -80,7 +80,8 @@ if uploaded_file:
                 st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'User Who Chats the Most' analysis is for all users.")
              
             st.markdown("##")
-                
+
+
         # emoji analysis Area
         if "Emoji Analysis" in analysis_filter:
             emojis_freq_df = utils.emoji_analysis(selected_user,df)
@@ -99,6 +100,7 @@ if uploaded_file:
                 st.dataframe(emojis_freq_df)
             st.markdown("##")
 
+
         # daily timeline area
         if "Daily Timeline" in analysis_filter:
             st.title("Daily Timeline (Last 15 days)")
@@ -112,6 +114,7 @@ if uploaded_file:
             st.pyplot(fig)
             figures.append(fig)
             st.markdown("##")
+
 
         # activity map Area
         if "Activity Map" in analysis_filter:
@@ -139,31 +142,53 @@ if uploaded_file:
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
                 figures.append(fig)
+            
+            st.header("Day vs. Hour Activity Heatmap")
+            day_hour_heatmap = utils.get_day_hour_heatmap(selected_user, df)
+            title = 'Day vs. Hour Activity Heatmap'
+            fig, ax = plt.subplots()
+            cax = ax.matshow(day_hour_heatmap, cmap='YlGnBu')  # Using a blue-green colormap
+            fig.set_figheight(3)  # Set height in inches
+
+            # Set ticks and labels
+            plt.xticks(range(len(day_hour_heatmap.columns)), day_hour_heatmap.columns)
+            plt.yticks(range(len(day_hour_heatmap.index)), day_hour_heatmap.index)  
+            plt.gca().xaxis.set_tick_params(which='both', bottom=False)
+
+            # Add color bar
+            cbar = fig.colorbar(cax)
+            cbar.set_label('Message Count')
+
+            st.pyplot(fig)
+            figures.append(fig)
 
             st.markdown("##")
 
-        #WordClouds Area
+
+        # WordClouds Area
         if "Word Cloud" in analysis_filter:
             st.title("Word Cloud")
             col1,col2 = st.columns(2)
             wc,most_common_word_df = utils.generate_wordcloud(selected_user, df)
-
-            with col1:
-                fig, ax = plt.subplots()
-                # Remove the axis and tick labels
-                ax.set_axis_off()
-                # Display the word cloud
-                ax.imshow(wc)
-                # Plot the word cloud in Streamlit
-                st.pyplot(fig)
-                figures.append(fig)
             
-            with col2:
-                st.dataframe(most_common_word_df)
+            if wc is not None:
+                with col1:
+                    fig, ax = plt.subplots()
+                    # Remove the axis and tick labels
+                    ax.set_axis_off()
+                    # Display the word cloud
+                    ax.imshow(wc)
+                    # Plot the word cloud in Streamlit
+                    st.pyplot(fig)
+                    figures.append(fig)
+                
+                with col2:
+                    st.dataframe(most_common_word_df)
+            else:
+                st.warning("Insufficient chat text for creating a meaningful word cloud.")
 
             st.markdown("##")
 
-            
         
         # -----Sentiment analysis Area------------------
         if "Sentiment Analysis" in analysis_filter:
@@ -246,9 +271,9 @@ footer = """
         }
     </style>
     <footer class="footer">
-        🔒Everything is processed in your browser. No data leaves your device.</br>
+        \U0001F512 Everything is processed in your browser. No data leaves your device.<br>
         """+ copyright +""".
-        Developed with ❤ by Tirthesh Jain & Aditya Tomar
+        Developed with \U00002764 by Tirthesh Jain & Aditya Tomar
     </footer>
     """
 st.markdown(footer,unsafe_allow_html=True)

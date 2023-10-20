@@ -23,10 +23,9 @@ def preprocess(file):
     df['year'] = df['datetime'].dt.year
     df['month_name'] = df['datetime'].dt.month_name()
     df['day_name'] = df['datetime'].dt.day_name()
-
+    df['hour'] = df['datetime'].dt.hour
 
     # filter the DataFrame to remove whatsapp info message
     df = df[df.Message != '']
     
-
     return df

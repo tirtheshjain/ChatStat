@@ -9,7 +9,7 @@ nltk.downloader.download('vader_lexicon')
 from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
 
-# Function calculate top statistics
+# Function calculate message_count, words_count, media_count, links_count, emojis_count
 def top_stats(selected_user, df):
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
@@ -101,7 +101,6 @@ def get_week_activity_map(selected_user,df):
     week_activity_map_sr = df['day_name'].value_counts()
     return week_activity_map_sr
 
-
 def get_month_activity_map(selected_user,df):
 
     if selected_user != 'All':
@@ -109,6 +108,24 @@ def get_month_activity_map(selected_user,df):
 
     month_activity_map_sr = df['month_name'].value_counts()
     return month_activity_map_sr
+
+# Function to generates a heatmap of message counts based on the hour of the day and day of the week
+# Returns: pandas.DataFrame: A DataFrame representing the day vs. hour activity heatmap.
+def get_day_hour_heatmap(selected_user, df):
+    # Filter the DataFrame by the selected user, if not 'All'
+    if selected_user != 'All':
+        df = df[df['User'] == selected_user]
+
+    # Group the data by 'hour' and 'day_name', counting the number of messages
+    data = df.groupby(['hour', 'day_name'], as_index=False)['Message'].count()
+
+    # Pivot the data to create the heatmap
+    data = data.pivot(index='day_name', columns='hour', values='Message')
+     
+    # Reorder the day names in the DataFrame
+    data = data.reindex(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+
+    return data
 
 
 # ---- utility functions for word cloud-----
@@ -136,7 +153,10 @@ def generate_wordcloud(selected_user, df):
 
     # Combine all messages into a single string
     all_messages = ' '.join(df['Message'])
-
+    
+    if len(all_messages) == 0:
+        return None, None  # Return None if there are no words
+    
     # Remove emojis from the combined messages
     all_messages = ''.join([c for c in all_messages if c not in emoji.EMOJI_DATA])
 
@@ -225,7 +245,7 @@ def sentiment_analysis(selected_user, df):
     return positive, negative, neutral
 
 
-# Generates HTML download links for a list of plots.
+# Function Generates HTML download links for a list of plots.
 # Args: figures: A list of Matplotlib figures.
 # Returns: A list of HTML download links, one for each figure.
 def generate_html_download_link(figures):
