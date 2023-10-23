@@ -10,6 +10,7 @@ nltk.downloader.download('stopwords')
 from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
+import re
 
 # Function calculate message_count, words_count, media_count, links_count, emojis_count
 def top_stats(selected_user, df):
@@ -41,6 +42,24 @@ def top_stats(selected_user, df):
     emojis_count = len(emojis_list)
 
     return message_count, words_count, media_count, links_count, emojis_count
+
+
+# Function find most mentioned(tagged) user
+def most_tagged_users(df):
+    # Combine all messages into a single string
+    all_messages = ' '.join(df['Message'])
+
+    tagged_users = re.findall(r'@\d{12}', all_messages)  # Find tagged users in the format @91XXXXXXXXXX
+
+    # Replace "@" with "+" in the tagged_users list
+    tagged_users = [user.replace('@', '+') for user in tagged_users]
+
+    # Create a new DataFrame for the most tagged users and their frequencies
+    most_tagged_user_df = pd.DataFrame(tagged_users, columns=['Tagged Users'])
+    most_tagged_user_df['Frequency'] = most_tagged_user_df['Tagged Users'].apply(lambda x: tagged_users.count(x))
+    most_tagged_user_df = most_tagged_user_df.drop_duplicates().sort_values(by='Frequency')
+
+    return most_tagged_user_df
 
 
 # Function find most active users
@@ -83,33 +102,44 @@ def emoji_analysis(selected_user,df):
 
     return emojis_freq_df
 
-
-def get_daily_timeline(selected_user,df):
-
+# Function return DataFrame, which contains a count of messages per day 
+def get_daily_timeline(selected_user, df):
+    # Check if 'All' is selected; if not, filter the DataFrame by the selected user
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
 
-    daily_timeline = df.groupby('Date',sort = False).count()['Message'].reset_index()
+    # Group the DataFrame by 'Date', count the number of 'Message' entries for each date,
+    # and reset the index to create a new DataFrame
+    daily_timeline = df.groupby('Date', sort=False).count()['Message'].reset_index()
 
+    # Return the daily_timeline DataFrame
     return daily_timeline
 
 
-# ---- utility functions for activity map -----
-def get_week_activity_map(selected_user,df):
 
+# ---- utility functions for activity map -----
+def get_week_activity_map(selected_user, df):
+     # Check if 'All' is selected; if not, filter the DataFrame by the selected user
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
 
+    # Create a Series that counts the occurrences of each day name.
     week_activity_map_sr = df['day_name'].value_counts()
+
+    # Return the Series with counts of activities for each day of the week.
     return week_activity_map_sr
 
-def get_month_activity_map(selected_user,df):
-
+def get_month_activity_map(selected_user, df):
+     # Check if 'All' is selected; if not, filter the DataFrame by the selected user
     if selected_user != 'All':
         df = df[df['User'] == selected_user]
 
+    # Create a Series that counts the occurrences of each month name.
     month_activity_map_sr = df['month_name'].value_counts()
+
+    # Return the Series with counts of activities for each month.
     return month_activity_map_sr
+
 
 # Function to generates a heatmap of message counts based on the hour of the day and day of the week
 # Returns: pandas.DataFrame: A DataFrame representing the day vs. hour activity heatmap.
@@ -139,9 +169,8 @@ def generate_wordcloud(selected_user, df):
     # Importing set of stopwords from nltk
     stop_words = set(stopwords.words('english'))
     
-    # maerging the two sets one is custom created and another is from nltk and storing it as a list
+    # Merging the two sets, one custom-created and the other from nltk, and storing them as a list
     stop_words = list(stop_words.union(custom_words))
-
 
     # Filter the DataFrame based on the selected user
     if selected_user != 'All':
@@ -163,11 +192,11 @@ def generate_wordcloud(selected_user, df):
     # Combine all messages into a single string
     all_messages = ' '.join(df['Message'])
     
-    if len(all_messages) == 0:
-        return None, None  # Return None if there are no words
-    
     # Remove emojis from the combined messages
     all_messages = ''.join([c for c in all_messages if c not in emoji.EMOJI_DATA])
+
+    # Use regular expressions to remove user mentions and phone numbers
+    all_messages = re.sub(r'(@\d{12})', '', all_messages)
 
     # Create a WordCloud
     wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
