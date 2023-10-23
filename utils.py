@@ -198,6 +198,9 @@ def generate_wordcloud(selected_user, df):
     # Use regular expressions to remove user mentions and phone numbers
     all_messages = re.sub(r'(@\d{12})', '', all_messages)
 
+    if len(all_messages) == 0:
+        return None, None  # Return None if there are no words
+        
     # Create a WordCloud
     wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
     wordcloud = wc.generate(all_messages)
