@@ -12,7 +12,7 @@ st.sidebar.title("Welcome To ChatStat !")
 st.sidebar.subheader("Filters")
 analysis_filter = st.sidebar.multiselect(
     "Analysis",
-    options=["Top Statistics","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Emoji Analysis","Sentiment Analysis"],
+    options=["Top Statistics", "Most Mentioned (Tagged) User","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Emoji Analysis","Sentiment Analysis"],
     default="Top Statistics"
 )
 
@@ -32,6 +32,7 @@ if uploaded_file:
 
     if st.button("Show Analysis"):
         figures = []    #list of all plots generated
+
         # Top Stats Area
         if "Top Statistics" in analysis_filter:
             message_count, words_count, media_count, links_count, emojis_count = utils.top_stats(selected_user,df)
@@ -59,6 +60,26 @@ if uploaded_file:
            
             st.markdown("##")
 
+        #Most tagged user analysis area
+        if "Most Mentioned (Tagged) User" in analysis_filter:
+            # finding the User Who got mentioned the Most (group level)
+            if selected_user == 'All':
+                most_tagged_user_df = utils.most_tagged_users(df)
+                st.title("Most Mentioned (Tagged) User")
+                if not most_tagged_user_df.empty:
+                    fig, ax = plt.subplots()
+                    ax.barh(most_tagged_user_df['Tagged Users'], most_tagged_user_df['Frequency'], color='#25d366')
+                    ax.set_ylabel('Tagged User')
+                    ax.set_xlabel('Frequency')
+                    st.pyplot(fig)
+                    figures.append(fig)
+                else:
+                    st.info("No user has been tagged in the group.")
+            else:
+                # Display a warning message for the case when the selected user is not 'All'
+                st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'Most Mentioned (Tagged) User' analysis is for all users.")
+             
+            st.markdown("##")
 
         # User Who Chats the Most Area
         if "User Who Chats the Most" in analysis_filter:
@@ -71,6 +92,8 @@ if uploaded_file:
                     fig, ax = plt.subplots()
                     ax.bar(top_user_sr.index, top_user_sr.values,color='#25d366')
                     plt.xticks(rotation='vertical')
+                    ax.set_xlabel('User')
+                    ax.set_ylabel('Message Count')
                     st.pyplot(fig)
                     figures.append(fig)
                 with col2:
@@ -86,18 +109,19 @@ if uploaded_file:
         if "Emoji Analysis" in analysis_filter:
             emojis_freq_df = utils.emoji_analysis(selected_user,df)
             st.title("Emoji Analysis")
-
-            col1,col2 = st.columns(2)
-
-            with col1:
-                fig, ax = plt.subplots()
-                ax.bar(emojis_freq_df["Emoji"].head(),emojis_freq_df["Frequency"].head(),color='#25d366')
-                ax.set_xlabel('Emoji')
-                ax.set_ylabel('Frequency')
-                st.pyplot(fig)
-                figures.append(fig)
-            with col2: 
-                st.dataframe(emojis_freq_df)
+            if not emojis_freq_df.empty:
+                col1, col2 = st.columns(2)
+                with col1:
+                    fig, ax = plt.subplots()
+                    ax.bar(emojis_freq_df["Emoji"].head(),emojis_freq_df["Frequency"].head(),color='#25d366')
+                    ax.set_xlabel('Emoji')
+                    ax.set_ylabel('Frequency')
+                    st.pyplot(fig)
+                    figures.append(fig)
+                with col2: 
+                    st.dataframe(emojis_freq_df)
+            else:
+                st.info("No Emoji has been shared.")
             st.markdown("##")
 
 
@@ -222,9 +246,9 @@ if uploaded_file:
                     contributors = utils.user_sentiment_contributors(df)
 
                     # Display the most positive, negative, and neutral contributors
-                    st.write("Most Positive User:", contributors['Most Positive User'])
-                    st.write("Most Negative User:", contributors['Most Negative User'])
-                    st.write("Most Neutral User:", contributors['Most Neutral User'])
+                    st.write("Most Positive Chat Contributor:", contributors['Most Positive User'])
+                    st.write("Most Negative Chat Contributor::", contributors['Most Negative User'])
+                    st.write("Most Neutral Chat Contributor:", contributors['Most Neutral User'])
                     
             st.markdown("##")
 
