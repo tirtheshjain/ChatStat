@@ -247,7 +247,7 @@ if uploaded_file:
 
                     # Display the most positive, negative, and neutral contributors
                     st.write("Most Positive Chat Contributor:", contributors['Most Positive User'])
-                    st.write("Most Negative Chat Contributor::", contributors['Most Negative User'])
+                    st.write("Most Negative Chat Contributor:", contributors['Most Negative User'])
                     st.write("Most Neutral Chat Contributor:", contributors['Most Neutral User'])
                     
             st.markdown("##")
