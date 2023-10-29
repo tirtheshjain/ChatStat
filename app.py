@@ -12,7 +12,7 @@ st.sidebar.title("Welcome To ChatStat !")
 st.sidebar.subheader("Filters")
 analysis_filter = st.sidebar.multiselect(
     "Analysis",
-    options=["Top Statistics", "Most Mentioned (Tagged) User","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Emoji Analysis","Sentiment Analysis"],
+    options=["Top Statistics", "Most Mentioned (Tagged) User","Daily Timeline","Activity Map","User Who Chats the Most","Word Cloud","Emoji Usage Analysis","Sentiment Analysis"],
     default="Top Statistics"
 )
 
@@ -71,6 +71,7 @@ if uploaded_file:
                     ax.barh(most_tagged_user_df['Tagged Users'], most_tagged_user_df['Frequency'], color='#25d366')
                     ax.set_ylabel('Tagged User')
                     ax.set_xlabel('Frequency')
+                    ax.set_title('Tagged Users Frequency')
                     st.pyplot(fig)
                     figures.append(fig)
                 else:
@@ -94,6 +95,7 @@ if uploaded_file:
                     plt.xticks(rotation='vertical')
                     ax.set_xlabel('User')
                     ax.set_ylabel('Message Count')
+                    ax.set_title('Top Users by Message Count')
                     st.pyplot(fig)
                     figures.append(fig)
                 with col2:
@@ -105,10 +107,10 @@ if uploaded_file:
             st.markdown("##")
 
 
-        # emoji analysis Area
-        if "Emoji Analysis" in analysis_filter:
+        # emoji usage analysis Area
+        if "Emoji Usage Analysis" in analysis_filter:
             emojis_freq_df = utils.emoji_analysis(selected_user,df)
-            st.title("Emoji Analysis")
+            st.title("Emoji Usage Analysis")
             if not emojis_freq_df.empty:
                 col1, col2 = st.columns(2)
                 with col1:
@@ -116,6 +118,7 @@ if uploaded_file:
                     ax.bar(emojis_freq_df["Emoji"].head(),emojis_freq_df["Frequency"].head(),color='#25d366')
                     ax.set_xlabel('Emoji')
                     ax.set_ylabel('Frequency')
+                    ax.set_title("Top Emojis by Usage Frequency")
                     st.pyplot(fig)
                     figures.append(fig)
                 with col2: 
@@ -133,6 +136,7 @@ if uploaded_file:
             ax.plot(daily_timeline['Date'].tail(15), daily_timeline['Message'].tail(15), color='#25d366')
             ax.set_xlabel('Date')
             ax.set_ylabel('Message Count')
+            ax.set_title('Message Count Over Date')
             plt.xticks(rotation='vertical')
             fig.set_figheight(3)  # Set height in inches
             st.pyplot(fig)
@@ -146,28 +150,27 @@ if uploaded_file:
             col1,col2 = st.columns(2)
 
             with col1:
-                st.header("Top messaging days")
                 active_day_sr = utils.get_week_activity_map(selected_user,df)
                 fig,ax = plt.subplots()
                 ax.bar(active_day_sr.index,active_day_sr.values,color='#25d366')
                 ax.set_xlabel('Days of the week')
                 ax.set_ylabel('Message Count')
+                ax.set_title('Top messaging days')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
                 figures.append(fig)
 
             with col2:
-                st.header("Top messaging months")
                 active_month_sr = utils.get_month_activity_map(selected_user, df)
                 fig, ax = plt.subplots()
                 ax.bar(active_month_sr.index, active_month_sr.values,color='#25d366')
                 ax.set_xlabel('Month name')
                 ax.set_ylabel('Message Count')
+                ax.set_title('Top messaging months')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
                 figures.append(fig)
             
-            st.header("Day vs. Hour Activity Heatmap")
             day_hour_heatmap = utils.get_day_hour_heatmap(selected_user, df)
             title = 'Day vs. Hour Activity Heatmap'
             fig, ax = plt.subplots()
@@ -182,6 +185,9 @@ if uploaded_file:
             # Add color bar
             cbar = fig.colorbar(cax)
             cbar.set_label('Message Count')
+
+            # Set the title
+            ax.set_title("Day vs. Hour Activity Heatmap")
 
             st.pyplot(fig)
             figures.append(fig)
@@ -263,8 +269,8 @@ if uploaded_file:
         downloads += "</p>"
         st.markdown(downloads, unsafe_allow_html=True)
         st.markdown("##")
-        
 
+        
 
 #---- Footer Area----
 

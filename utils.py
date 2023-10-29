@@ -217,6 +217,7 @@ def generate_wordcloud(selected_user, df):
 
 # Function to calculate the sentiment score for a given message
 def calculate_sentiment_score(message, sent):
+    message = emoji.demojize(message)
     scores = sent.polarity_scores(message)
     return scores['compound']
 
@@ -243,11 +244,11 @@ def user_sentiment_contributors(df):
         user_message_counts[user] = user_message_counts.get(user, 0) + 1
     
     # Calculate weighted scores for each user based on sentiment and message count
-    weighted_scores = {user: user_scores[user] / user_message_counts[user] for user in user_scores}
+    weighted_scores = {user: user_scores[user] / user_message_counts[user] for user in user_scores if user_message_counts[user] > 0}
 
-    most_positive_user = max(user_scores, key=lambda user: weighted_scores[user])
-    most_negative_user = min(user_scores, key=lambda user: weighted_scores[user])
-    most_neutral_user = min(user_scores, key=lambda user: abs(weighted_scores[user]))
+    most_positive_user = max(weighted_scores, key=weighted_scores.get)
+    most_negative_user = min(weighted_scores, key=weighted_scores.get)
+    most_neutral_user = min(weighted_scores, key=lambda user: abs(weighted_scores[user]))
 
     return {
         'Most Positive User': most_positive_user,
