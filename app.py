@@ -24,8 +24,11 @@ uploaded_file = st.file_uploader(":file_folder: Upload a WhatsApp Chat Exported 
 
 if uploaded_file:
     df = dataPreprocessor.preprocess(uploaded_file)
-    st.dataframe(df)
+    
+    with st.expander("Processed WhatsApp Chat Data"):
+        st.dataframe(df)
 
+    # ---- SIDEBAR ----
     user_list = df['User'].unique().tolist()
     user_list.insert(0,"All")
     selected_user = st.sidebar.selectbox("User",user_list)
