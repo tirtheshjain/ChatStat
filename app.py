@@ -134,20 +134,47 @@ if uploaded_file:
             st.markdown("##")
 
 
-        # daily timeline area
+        # Check if "Daily Timeline" is selected in the analysis_filter
         if "Daily Timeline" in analysis_filter:
+            # Display the title for the Daily Timeline section
             st.title("Daily Timeline (Last 15 days)")
-            daily_timeline = utils.get_daily_timeline(selected_user, df)
+            
+            # Get the daily timeline data using the utils module
+            daily_timeline = utils.get_daily_timeline(selected_user, df).to_numpy()
+            
+            # Create a subplot for the plot
             fig, ax = plt.subplots()
-            ax.plot(daily_timeline['Date'].tail(15), daily_timeline['Message'].tail(15), color='#25d366')
+            
+            # Extract the last 15 days' data for plotting
+            dates = []
+            msg_count = []
+            for i in range(len(daily_timeline) - 15, len(daily_timeline)):
+                dates.append(daily_timeline[i][0])
+                msg_count.append(daily_timeline[i][1])
+            
+            # Plot the data
+            ax.plot(dates, msg_count, color='#25d366')
+            
+            # Set labels and title for the plot
             ax.set_xlabel('Date')
             ax.set_ylabel('Message Count')
             ax.set_title('Message Count Over Date')
+            
+            # Rotate x-axis labels for better readability
             plt.xticks(rotation='vertical')
+            
+            # Set the height of the plot
             fig.set_figheight(3)  # Set height in inches
+            
+            # Display the plot using Streamlit
             st.pyplot(fig)
+            
+            # Append the figure to the figures list (assuming figures is defined outside this snippet)
             figures.append(fig)
+            
+            # Add a markdown separator
             st.markdown("##")
+
 
 
         # Activity map Area
