@@ -33,10 +33,11 @@ if uploaded_file:
     user_list.insert(0,"All")
     selected_user = st.sidebar.selectbox("User",user_list)
 
-    if st.button("Show Analysis"):
-        figures = []    #list of all plots generated
 
-        # Top Stats Area
+    if st.button("Show Analysis"):
+        figures = []    # list of all plots generated
+
+       # Top Stats Area
         if "Top Statistics" in analysis_filter:
             message_count, words_count, media_count, links_count, emojis_count = utils.top_stats(selected_user,df)
             st.title("Top Statistics")
@@ -63,7 +64,8 @@ if uploaded_file:
            
             st.markdown("##")
 
-        #Most tagged user analysis area
+
+        # Most tagged user analysis area
         if "Most Mentioned (Tagged) User" in analysis_filter:
             # finding the User Who got mentioned the Most (group level)
             if selected_user == 'All':
@@ -84,6 +86,7 @@ if uploaded_file:
                 st.warning(f"Warning: You've selected a specific user: {selected_user}. Please note that 'Most Mentioned (Tagged) User' analysis is for all users.")
              
             st.markdown("##")
+
 
         # User Who Chats the Most Area
         if "User Who Chats the Most" in analysis_filter:
@@ -147,7 +150,7 @@ if uploaded_file:
             st.markdown("##")
 
 
-        # activity map Area
+        # Activity map Area
         if "Activity Map" in analysis_filter:
             st.title('Activity Map')
             col1,col2 = st.columns(2)
@@ -173,7 +176,8 @@ if uploaded_file:
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
                 figures.append(fig)
-            
+
+            # Activity heatmap
             day_hour_heatmap = utils.get_day_hour_heatmap(selected_user, df)
             title = 'Day vs. Hour Activity Heatmap'
             fig, ax = plt.subplots()
@@ -264,13 +268,26 @@ if uploaded_file:
             
 
         # ---- DOWNLOAD SECTION Area ----
-        st.subheader('Downloads:')
-        links = utils.generate_html_download_link(figures)
-        downloads = "<p>"
-        for href in links:
-            downloads += href 
-        downloads += "</p>"
-        st.markdown(downloads, unsafe_allow_html=True)
+        if figures:
+            all_plots_zip_data = utils.generate_all_plots_zip(figures)
+    
+            # Define button CSS
+            button_style = """
+                background-color: #25D366;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+            """
+
+            st.markdown(f'<a href="data:file/zip;base64,{all_plots_zip_data}" download="all_plots.zip"><button style="{button_style}">Download All Plots</button></a>', unsafe_allow_html=True)
+
         st.markdown("##")
 
         
@@ -304,7 +321,7 @@ footer = """
         }
     </style>
     <footer class="footer">
-        \U0001F512 Everything is processed in your browser. No data leaves your device.<br>
+        \U0001F512  We do not share or store your data beyond the scope of this application.<br>
         """+ copyright +""".
         Developed with \U00002764 by Tirthesh Jain & Aditya Tomar
     </footer>

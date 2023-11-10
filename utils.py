@@ -11,6 +11,7 @@ from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
 import base64  # Standard Python Module
 import re
+from zipfile import ZipFile
 
 # Function calculate message_count, words_count, media_count, links_count, emojis_count
 def top_stats(selected_user, df):
@@ -114,7 +115,6 @@ def get_daily_timeline(selected_user, df):
 
     # Return the daily_timeline DataFrame
     return daily_timeline
-
 
 
 # ---- utility functions for activity map -----
@@ -287,19 +287,27 @@ def sentiment_analysis(selected_user, df):
     return positive, negative, neutral
 
 
-# Function Generates HTML download links for a list of plots.
-# Args: figures: A list of Matplotlib figures.
-# Returns: A list of HTML download links, one for each figure.
-def generate_html_download_link(figures):
-  links = []
-  for i, fig in enumerate(figures):
-    towrite = io.BytesIO()
-    fig.savefig(towrite, format="png")
-    towrite.seek(0)
-    b64 = base64.b64encode(towrite.read()).decode()
-    href = f'<a href="data:image/png;base64, {b64}" download="plot{i}.png"> Plot{i} </a>'
-    links.append(href)
-  return links
+# Function to generate a zip file containing all plots
+# Args figures (list): A list of Matplotlib figures to be included in the zip file.
+# Returns str: Base64-encoded binary data of the zip file containing the plots.
+def generate_all_plots_zip(figures):
+    # Create a BytesIO buffer to hold the zip file
+    with io.BytesIO() as zip_buffer:
+        # Create a ZipFile object for writing the zip file
+        with ZipFile(zip_buffer, "w") as zipf:
+            for i, fig in enumerate(figures):
+                # Create a BytesIO buffer for each image
+                with io.BytesIO() as img_buffer:
+                    fig.savefig(img_buffer, format="png")
+                    img_buffer.seek(0)
+                    # Write the image to the zip file with a unique name
+                    zipf.writestr(f"plot{i}.png", img_buffer.read())
+        
+        # Move the buffer cursor to the beginning and encode the zip file in base64
+        zip_buffer.seek(0)
+        b64 = base64.b64encode(zip_buffer.read()).decode()
+        
+        return b64
 
     
     
