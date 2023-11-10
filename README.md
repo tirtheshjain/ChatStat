@@ -84,5 +84,6 @@ For any questions or issues, please contact the developers:
 
 ---
 
-🔒 We do not share or store your data beyond the scope of this application.
-💖 Developed with love by Tirthesh Jain & Aditya Tomar. © [2023] ChatStat.
+<div align="center">🔒 We do not share or store your data beyond the scope of this application.</div>
+
+<div align="center">💖 Developed with love by Tirthesh Jain & Aditya Tomar. © [2023] ChatStat.</div>
