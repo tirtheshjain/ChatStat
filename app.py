@@ -127,7 +127,6 @@ if uploaded_file:
                     for idx in range(len(emojis_freq_df["Frequency"].head())):
                         emoji_x.append('Emoji '+str(idx))
                     ax.bar(emoji_x,emojis_freq_df["Frequency"].head(),color='#25d366')
-                    ax.set_xlabel('Emoji')
                     ax.set_ylabel('Frequency')
                     ax.set_title("Top Emojis by Usage Frequency")
                     st.pyplot(fig)
