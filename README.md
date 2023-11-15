@@ -74,8 +74,8 @@ For those interested in hosting or running the app locally, you can follow these
 
 1. Clone the repository: 
    ```bash
-   git clone https://github.com/yourusername/your-repo.git
-   cd your-repo
+   git clone https://github.com/tirtheshjain/ChatStat.git
+   cd ChatStat
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
