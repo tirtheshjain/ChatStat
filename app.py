@@ -123,7 +123,10 @@ if uploaded_file:
                 col1, col2 = st.columns(2)
                 with col1:
                     fig, ax = plt.subplots()
-                    ax.bar(emojis_freq_df["Emoji"].head(),emojis_freq_df["Frequency"].head(),color='#25d366')
+                    emoji_x = []
+                    for idx in range(len(emojis_freq_df["Frequency"].head())):
+                        emoji_x.append('Emoji '+str(idx))
+                    ax.bar(emoji_x,emojis_freq_df["Frequency"].head(),color='#25d366')
                     ax.set_xlabel('Emoji')
                     ax.set_ylabel('Frequency')
                     ax.set_title("Top Emojis by Usage Frequency")
