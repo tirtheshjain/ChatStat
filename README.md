@@ -66,6 +66,23 @@ This project is developed using Streamlit, matplotlib, dataPreprocessor, and uti
 - [dataPreprocessor.py](dataPreprocessor.py)
 - [utils.py](utils.py)
 
+## Deployment Information
+This app is deployed using [Streamlit Sharing](https://www.streamlit.io/sharing). You can access the live version [here](https://chat-stat.streamlit.app/).
+
+## Hosting Information
+For those interested in hosting or running the app locally, you can follow these steps:
+
+1. Clone the repository: 
+   ```bash
+   git clone https://github.com/yourusername/your-repo.git
+   cd your-repo
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+3. Run the app:
+    ```bash
+    streamlit run app.py
+   
 ## Contributors
 - Tirthesh Jain
 - Aditya Tomar
