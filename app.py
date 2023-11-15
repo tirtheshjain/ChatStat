@@ -35,9 +35,9 @@ if uploaded_file:
 
 
     if st.button("Show Analysis"):
-        figures = []    # list of all plots generated
+        plot_data = []    # list containing tuples of names and corresponding figure of all plots generated
 
-       # Top Stats Area
+        # Top Stats Area
         if "Top Statistics" in analysis_filter:
             message_count, words_count, media_count, links_count, emojis_count = utils.top_stats(selected_user,df)
             st.title("Top Statistics")
@@ -78,7 +78,8 @@ if uploaded_file:
                     ax.set_xlabel('Frequency')
                     ax.set_title('Tagged Users Frequency')
                     st.pyplot(fig)
-                    figures.append(fig)
+                    # Append the figure and a corresponding name to the plot_data list
+                    plot_data.append(("MostMentionedUsers", fig))
                 else:
                     st.info("No user has been tagged in the group.")
             else:
@@ -103,7 +104,8 @@ if uploaded_file:
                     ax.set_ylabel('Message Count')
                     ax.set_title('Top Users by Message Count')
                     st.pyplot(fig)
-                    figures.append(fig)
+                    # Append the figure and a corresponding name to the plot_data list
+                    plot_data.append(("UserWhoChatsTheMost", fig))
                 with col2:
                     st.dataframe(top_users_contribution_df)
             else:
@@ -126,7 +128,8 @@ if uploaded_file:
                     ax.set_ylabel('Frequency')
                     ax.set_title("Top Emojis by Usage Frequency")
                     st.pyplot(fig)
-                    figures.append(fig)
+                    # Append the figure and a corresponding name to the plot_data list
+                    plot_data.append(("EmojiUsageAnalysis", fig))
                 with col2: 
                     st.dataframe(emojis_freq_df)
             else:
@@ -169,8 +172,8 @@ if uploaded_file:
             # Display the plot using Streamlit
             st.pyplot(fig)
             
-            # Append the figure to the figures list (assuming figures is defined outside this snippet)
-            figures.append(fig)
+            # Append the figure and a corresponding name to the plot_data list
+            plot_data.append(("DailyTimeline", fig))
             
             # Add a markdown separator
             st.markdown("##")
@@ -191,7 +194,7 @@ if uploaded_file:
                 ax.set_title('Top messaging days')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
-                figures.append(fig)
+                plot_data.append(("TopMessagingDays", fig))
 
             with col2:
                 active_month_sr = utils.get_month_activity_map(selected_user, df)
@@ -202,7 +205,7 @@ if uploaded_file:
                 ax.set_title('Top messaging months')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
-                figures.append(fig)
+                plot_data.append(("TopMessagingMonths", fig))
 
             # Activity heatmap
             day_hour_heatmap = utils.get_day_hour_heatmap(selected_user, df)
@@ -224,7 +227,7 @@ if uploaded_file:
             ax.set_title("Day vs. Hour Activity Heatmap")
 
             st.pyplot(fig)
-            figures.append(fig)
+            plot_data.append(("DayHourActivityHeatmap", fig))
 
             st.markdown("##")
 
@@ -244,7 +247,7 @@ if uploaded_file:
                     ax.imshow(wc)
                     # Plot the word cloud in Streamlit
                     st.pyplot(fig)
-                    figures.append(fig)
+                    plot_data.append(("WordCloud", fig))
                 
                 with col2:
                     st.dataframe(most_common_word_df)
@@ -278,7 +281,7 @@ if uploaded_file:
                 plt.legend(labels, loc='best')
 
                 st.pyplot(fig)
-                figures.append(fig)
+                plot_data.append(("SentimentAnalysis", fig))
 
             with col2:
                 if selected_user == 'All':
@@ -295,8 +298,8 @@ if uploaded_file:
             
 
         # ---- DOWNLOAD SECTION Area ----
-        if figures:
-            all_plots_zip_data = utils.generate_all_plots_zip(figures)
+        if plot_data:
+            all_plots_zip_data = utils.generate_all_plots_zip(plot_data)
     
             # Define button CSS
             button_style = """

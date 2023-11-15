@@ -290,18 +290,18 @@ def sentiment_analysis(selected_user, df):
 # Function to generate a zip file containing all plots
 # Args figures (list): A list of Matplotlib figures to be included in the zip file.
 # Returns str: Base64-encoded binary data of the zip file containing the plots.
-def generate_all_plots_zip(figures):
+def generate_all_plots_zip(plot_data):
     # Create a BytesIO buffer to hold the zip file
     with io.BytesIO() as zip_buffer:
         # Create a ZipFile object for writing the zip file
         with ZipFile(zip_buffer, "w") as zipf:
-            for i, fig in enumerate(figures):
+            for name, fig in plot_data:
                 # Create a BytesIO buffer for each image
                 with io.BytesIO() as img_buffer:
                     fig.savefig(img_buffer, format="png")
                     img_buffer.seek(0)
                     # Write the image to the zip file with a unique name
-                    zipf.writestr(f"plot{i}.png", img_buffer.read())
+                    zipf.writestr(f"{name}.png", img_buffer.read())
         
         # Move the buffer cursor to the beginning and encode the zip file in base64
         zip_buffer.seek(0)
