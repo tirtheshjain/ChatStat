@@ -40,7 +40,7 @@ Determine which user is the most active in terms of message count.
 Analyze the frequency of emoji usage in the chat.
 
 ### Daily Timeline
-View the message count over the last 15 days.
+View the message count over the days.
 
 ### Activity Map
 Explore the top messaging days and months. Analyze the distribution of messages throughout the week and hours of the day with the day vs. hour activity heatmap.
