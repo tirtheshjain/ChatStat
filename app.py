@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import dataPreprocessor, utils
 import math
 import datetime
+import warnings
+warnings.filterwarnings("ignore")
 
 st.set_page_config(page_title="ChatStat ",page_icon=":chart:",layout="wide")
 st.title(":chart: ChatStat | The WhatsApp Chat Analyzer")
@@ -36,6 +38,7 @@ if uploaded_file:
 
     if st.button("Show Analysis"):
         plot_data = []    # list containing tuples of names and corresponding figure of all plots generated
+        plot_color = '#25d366'  # Set the color for the plot (hex code for a shade of green)
 
         # Top Stats Area
         if "Top Statistics" in analysis_filter:
@@ -73,7 +76,7 @@ if uploaded_file:
                 st.title("Most Mentioned (Tagged) User")
                 if not most_tagged_user_df.empty:
                     fig, ax = plt.subplots()
-                    ax.barh(most_tagged_user_df['Tagged Users'], most_tagged_user_df['Frequency'], color='#25d366')
+                    ax.barh(most_tagged_user_df['Tagged Users'], most_tagged_user_df['Frequency'], color=plot_color )
                     ax.set_ylabel('Tagged User')
                     ax.set_xlabel('Frequency')
                     ax.set_title('Tagged Users Frequency')
@@ -98,7 +101,7 @@ if uploaded_file:
                 col1, col2 = st.columns(2)
                 with col1:
                     fig, ax = plt.subplots()
-                    ax.bar(top_user_sr.index, top_user_sr.values,color='#25d366')
+                    ax.bar(top_user_sr.index, top_user_sr.values,color=plot_color )
                     plt.xticks(rotation='vertical')
                     ax.set_xlabel('User')
                     ax.set_ylabel('Message Count')
@@ -115,67 +118,75 @@ if uploaded_file:
             st.markdown("##")
 
 
-        # emoji usage analysis Area
+        # Emoji Usage Analysis Area
         if "Emoji Usage Analysis" in analysis_filter:
-            emojis_freq_df = utils.emoji_analysis(selected_user,df)
+            emojis_freq_df = utils.emoji_analysis(selected_user, df)
             st.title("Emoji Usage Analysis")
+
             if not emojis_freq_df.empty:
                 col1, col2 = st.columns(2)
+                
+                # Plotting Top Emojis
                 with col1:
                     fig, ax = plt.subplots()
-                    emoji_x = []
-                    for idx in range(len(emojis_freq_df["Frequency"].head())):
-                        emoji_x.append('Emoji '+str(idx))
-                    ax.bar(emoji_x,emojis_freq_df["Frequency"].head(),color='#25d366')
+                    emoji_x = [f'Emoji {idx}' for idx in range(len(emojis_freq_df["Frequency"].head()))]
+                    ax.bar(emoji_x, emojis_freq_df["Frequency"].head(), color=plot_color)
                     ax.set_ylabel('Frequency')
                     ax.set_title("Top Emojis by Usage Frequency")
                     st.pyplot(fig)
                     # Append the figure and a corresponding name to the plot_data list
                     plot_data.append(("EmojiUsageAnalysis", fig))
-                with col2: 
+
+                # Displaying Emoji Frequency DataFrame
+                with col2:
                     st.dataframe(emojis_freq_df)
+
             else:
                 st.info("No Emoji has been shared.")
+            
             st.markdown("##")
+
 
 
         # Check if "Daily Timeline" is selected in the analysis_filter
         if "Daily Timeline" in analysis_filter:
             # Display the title for the Daily Timeline section
-            st.title("Daily Timeline (Last 15 days)")
+            st.title("Daily Timeline")
             
             # Get the daily timeline data using the utils module
             daily_timeline = utils.get_daily_timeline(selected_user, df).to_numpy()
             
-            # Create a subplot for the plot
-            fig, ax = plt.subplots()
-            
-            # Extract the last 15 days' data for plotting
-            dates = []
-            msg_count = []
-            for i in range(len(daily_timeline) - 15, len(daily_timeline)):
-                dates.append(daily_timeline[i][0])
-                msg_count.append(daily_timeline[i][1])
-            
-            # Plot the data
-            ax.plot(dates, msg_count, color='#25d366')
-            
-            # Set labels and title for the plot
-            ax.set_xlabel('Date')
-            ax.set_ylabel('Message Count')
-            ax.set_title('Message Count Over Date')
-            
-            # Rotate x-axis labels for better readability
-            plt.xticks(rotation='vertical')
-            
-            # Set the height of the plot
-            fig.set_figheight(3)  # Set height in inches
-            
-            # Display the plot using Streamlit
-            st.pyplot(fig)
-            
-            # Append the figure and a corresponding name to the plot_data list
-            plot_data.append(("DailyTimeline", fig))
+            # Ensure there is data available
+            if len(daily_timeline) == 0:
+                st.warning("No data available for Daily Timeline analysis.")
+            else:
+                # Create a subplot for the plot
+                fig, ax = plt.subplots()
+
+                # Subsample the dates for better readability
+                subsample_factor = max(len(daily_timeline) // 15, 1)
+                dates = daily_timeline[:, 0][::subsample_factor]
+                msg_count = daily_timeline[:, 1][::subsample_factor]
+                
+                # Plot the data
+                ax.plot(dates, msg_count, color=plot_color)
+                
+                # Set labels and title for the plot
+                ax.set_xlabel('Date')
+                ax.set_ylabel('Message Count')
+                ax.set_title('Message Count Over Date')
+                
+                # Rotate x-axis labels for better readability
+                plt.xticks(rotation='vertical')
+                
+                # Set the height of the plot
+                fig.set_figheight(3)  # Set height in inches
+                
+                # Display the plot using Streamlit
+                st.pyplot(fig)
+                
+                # Append the figure and a corresponding name to the plot_data list
+                plot_data.append(("DailyTimeline", fig))
             
             # Add a markdown separator
             st.markdown("##")
@@ -190,7 +201,7 @@ if uploaded_file:
             with col1:
                 active_day_sr = utils.get_week_activity_map(selected_user,df)
                 fig,ax = plt.subplots()
-                ax.bar(active_day_sr.index,active_day_sr.values,color='#25d366')
+                ax.bar(active_day_sr.index,active_day_sr.values,color=plot_color)
                 ax.set_xlabel('Days of the week')
                 ax.set_ylabel('Message Count')
                 ax.set_title('Top messaging days')
@@ -201,7 +212,7 @@ if uploaded_file:
             with col2:
                 active_month_sr = utils.get_month_activity_map(selected_user, df)
                 fig, ax = plt.subplots()
-                ax.bar(active_month_sr.index, active_month_sr.values,color='#25d366')
+                ax.bar(active_month_sr.index, active_month_sr.values,color=plot_color)
                 ax.set_xlabel('Month name')
                 ax.set_ylabel('Message Count')
                 ax.set_title('Top messaging months')
