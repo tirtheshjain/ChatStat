@@ -3,6 +3,8 @@
 ## Overview
 ChatStat is a Streamlit-based WhatsApp chat analyzer designed to provide insightful statistics about your conversations. Easily analyze your chat data in a user-friendly environment with this tool.
 
+[Try out ChatStat](https://chat-stat.streamlit.app/) 
+
 ## Getting Started
 To utilize ChatStat, follow these steps:
 
