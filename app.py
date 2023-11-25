@@ -180,7 +180,7 @@ if uploaded_file:
                 plt.xticks(rotation='vertical')
                 
                 # Set the height of the plot
-                fig.set_figheight(3)  # Set height in inches
+                fig.set_figheight(3)
                 
                 # Display the plot using Streamlit
                 st.pyplot(fig)
