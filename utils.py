@@ -288,7 +288,7 @@ def sentiment_analysis(selected_user, df):
 
 
 # Function to generate a zip file containing all plots
-# Args figures (list): A list of Matplotlib figures to be included in the zip file.
+# Args plot_data (list): A list of Matplotlib figures to be included in the zip file.
 # Returns str: Base64-encoded binary data of the zip file containing the plots.
 def generate_all_plots_zip(plot_data):
     # Create a BytesIO buffer to hold the zip file
